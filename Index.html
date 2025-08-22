@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>CASTORCEGO Dressup</title>
+<style>
+/* --- ESTILOS GERAIS --- */
+body {
+  margin:0;
+  font-family:'Comic Sans MS', cursive;
+  background:#ffe4f0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  text-align:center;
+}
+
+/* --- TELA DE LOADING --- */
+#loading {
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:#ffc0cb;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  z-index:9999;
+  transition: opacity 0.5s ease;
+  cursor: pointer;
+}
+
+#loading h1 {
+  font-size:4em;
+  color:white;
+  text-shadow:2px 2px 4px #00000066;
+  margin-bottom:40px;
+  font-family: 'Brush Script MT', cursive, 'Comic Sans MS', sans-serif;
+}
+
+/* Barra de carregamento kawaii */
+.progress-bar {
+  width:300px;
+  height:30px;
+  background:#ffffff33;
+  border-radius:15px;
+  overflow:hidden;
+  margin-bottom:10px;
+  box-shadow:0 0 10px #fff5;
+}
+.progress {
+  width:0%;
+  height:100%;
+  background:linear-gradient(90deg,#FF69B4,#FFB6C1,#FFD700);
+  border-radius:15px;
+  transition:width 0.3s ease;
+}
+.percent {
+  font-size:1.2em;
+  color:white;
+  text-shadow:1px 1px 2px #000;
+  margin-bottom:20px;
+}
+
+/* --- TELA DO JOGO --- */
+#game {
+  display:none;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* Avatar centralizado */
+#avatar {
+  width:220px;
+  height:330px;
+  position:relative;
+  margin-bottom:20px;
+  border:4px solid hotpink;
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 6px 15px rgba(0,0,0,0.3);
+}
+
+/* Camadas do avatar */
+.part {
+  position:absolute;
+  width:100%;
+  height:100%;
+  top:0;
+  left:0;
+  background-size:contain;
+  background-position:center;
+  background-repeat:no-repeat;
+  transition: all 0.3s ease;
+}
+
+@keyframes hairSwing { 
+  0%{transform:rotate(0deg);} 
+  50%{transform:rotate(3deg);} 
+  100%{transform:rotate(0deg);} 
+}
+@keyframes accessoryBlink {
+  0%,100%{opacity:1;} 
+  50%{opacity:0.5;} 
+}
+
+/* Select e Input */
+select {
+  margin:5px;
+  padding:5px;
+  border-radius:12px;
+  border:2px solid hotpink;
+  font-size:14px;
+}
+input {
+  margin-top:10px;
+  padding:5px;
+  border-radius:12px;
+  border:2px solid hotpink;
+  font-size:16px;
+  text-align:center;
+}
+h2 {
+  color:hotpink;
+  text-shadow:1px 1px 2px #fff;
+}
+option::before { content:"🌸 "; }
+
+</style>
+</head>
+<body>
+
+<!-- TRILHA SONORA -->
+<audio id="bgMusic" src="trilha.mp3" loop></audio>
+
+<!-- TELA DE CARREGAMENTO -->
+<div id="loading">
+  <h1>CASTORCEGO Dressup</h1>
+  <div class="progress-bar"><div class="progress"></div></div>
+  <div class="percent">0%</div>
+  <p style="color:white; font-size:14px; margin-top:10px;">Clique em qualquer lugar para ouvir a música 🎵</p>
+</div>
+
+<!-- TELA DO JOGO -->
+<div id="game">
+  <h2>Vista seu Avatar!</h2>
+  <div id="avatar">
+    <div id="body" class="part"></div>
+    <div id="skin" class="part"></div>
+    <div id="face" class="part"></div>
+    <div id="hair" class="part"></div>
+    <div id="top" class="part"></div>
+    <div id="bottom" class="part"></div>
+    <div id="shoes" class="part"></div>
+    <div id="accessory" class="part"></div>
+  </div>
+
+  <div>
+    <label>Pele:</label><select id="skinSelect"></select>
+    <label>Rosto:</label><select id="faceSelect"></select>
+    <label>Cabelo:</label><select id="hairSelect"></select>
+    <label>Parte de cima:</label><select id="topSelect"></select>
+    <label>Parte de baixo:</label><select id="bottomSelect"></select>
+    <label>Sapatos:</label><select id="shoesSelect"></select>
+    <label>Acessórios:</label><select id="accessorySelect"></select>
+  </div>
+
+  <div>
+    <input type="text" id="avatarName" placeholder="Digite o nome do avatar">
+  </div>
+</div>
+
+<script>
+// ELEMENTOS
+const loading = document.getElementById("loading");
+const game = document.getElementById("game");
+const progress = document.querySelector(".progress");
+const percent = document.querySelector(".percent");
+const bgMusic = document.getElementById("bgMusic");
+
+// --- INICIAR MÚSICA COM CLIQUE ---
+function startMusic() {
+  bgMusic.play().catch(()=>console.log("Erro ao tocar música"));
+  loading.removeEventListener("click", startMusic);
+}
+loading.addEventListener("click", startMusic);
+
+// Ajustar volume da música
+bgMusic.volume = 0.5;
+
+// --- SIMULAÇÃO DE CARREGAMENTO ---
+let width = 0;
+const interval = setInterval(()=>{
+  width += Math.floor(Math.random()*5+1);
+  if(width>100) width=100;
+  progress.style.width = width + "%";
+  percent.textContent = width + "%";
+  if(width>=100){
+    clearInterval(interval);
+    loading.style.opacity = 0;
+    setTimeout(()=>{
+      loading.style.display = "none";
+      game.style.display = "flex";
+    },500);
+  }
+},200);
+
+// --- FUNÇÃO PARA CRIAR OPÇÕES ---
+function createOptions(selectId, prefix){
+  const select=document.getElementById(selectId);
+  for(let i=1;i<=10;i++){
+    const opt=document.createElement("option");
+    opt.value=i;
+    opt.textContent="🌸 "+prefix+" "+i;
+    select.appendChild(opt);
+  }
+
+  select.onchange=()=>{
+    const part=document.getElementById(selectId.replace("Select",""));
+    const fileName = selectId+select.value+".png"; 
+    part.style.background="url('"+fileName+"') center/contain no-repeat";
+    
+    if(selectId=="hairSelect") part.style.animation="hairSwing 1.5s infinite";
+    else if(selectId=="accessorySelect") part.style.animation="accessoryBlink 1s infinite";
+    else part.style.animation="";
+  };
+}
+
+// --- CRIAR OPÇÕES ---
+createOptions("skinSelect","Pele");
+createOptions("faceSelect","Rosto");
+createOptions("hairSelect","Cabelo");
+createOptions("topSelect","Topo");
+createOptions("bottomSelect","Baixo");
+createOptions("shoesSelect","Sapato");
+createOptions("accessorySelect","Acessório");
+
+// --- NOME DO AVATAR ---
+const avatarName=document.getElementById("avatarName");
+avatarName.value=localStorage.getItem("avatarName")||"";
+avatarName.oninput=()=>{localStorage.setItem("avatarName",avatarName.value);}
+
+// --- IMAGEM BASE ---
+document.getElementById("body").style.background="url('corpo.png') center/contain no-repeat";
+document.getElementById("skin").style.background="url('skin1.png') center/contain no-repeat";
+document.getElementById("face").style.background="url('face1.png') center/contain no-repeat";
+
+</script>
+</body>
+</html>
